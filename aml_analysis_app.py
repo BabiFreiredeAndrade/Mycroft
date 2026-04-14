@@ -78,6 +78,24 @@ section[data-testid="stSidebar"] label {
 .badge-green { background: #0d2a1a; color: #4ade80; border-color: #14532d; }
 .badge-yellow { background: #2a2010; color: #fbbf24; border-color: #78350f; }
 
+/* ── Form boxes ── */
+.box-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #a0aec0;
+    margin-bottom: 6px;
+    margin-top: 4px;
+}
+.form-box {
+    background: #141824;
+    border: 1px solid #2a3040;
+    border-radius: 8px;
+    padding: 20px 24px 24px 24px;
+    margin-bottom: 8px;
+}
+
 /* ── Section headers ── */
 .section-title {
     font-family: 'IBM Plex Mono', monospace;
@@ -346,157 +364,163 @@ if "Novo" in pagina:
     with tab1:
 
         # ── CAIXA 1: CNPJ ──────────────────────────────────────────────
-        with st.container(border=True):
-            st.markdown('<div class="section-title" style="margin-top:4px">CNPJ</div>', unsafe_allow_html=True)
-            cnpj = st.text_input("CNPJ *", placeholder="00.000.000/0000-00")
+        st.markdown('<div class="box-label">CNPJ</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-box">', unsafe_allow_html=True)
+        cnpj = st.text_input("CNPJ *", placeholder="00.000.000/0000-00", label_visibility="collapsed")
+        st.markdown('</div>', unsafe_allow_html=True)
 
-        # ── CAIXA 2: TODOS OS DEMAIS CAMPOS ────────────────────────────
-        with st.container(border=True):
+        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
-            st.markdown('<div class="section-title" style="margin-top:4px">Identificação</div>', unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
-            with col1:
-                razao_social = st.text_input("Razão Social *", placeholder="Ex: EMPRESA LTDA.")
-                nome_fantasia = st.text_input("Nome Fantasia", placeholder="(opcional)")
-            with col2:
-                data_fund = st.date_input(
-                    "Data de Fundação",
-                    value=datetime.date(2020, 1, 1),
-                    min_value=datetime.date(1900, 1, 1),
-                )
-                nat_juridica = st.selectbox(
-                    "Natureza Jurídica",
-                    ["Sociedade Limitada (LTDA)", "SA Aberta", "SA Fechada", "EIRELI", "MEI", "Outra"],
-                )
-                porte = st.selectbox(
-                    "Porte",
-                    ["Micro", "Pequeno Porte", "Médio Porte", "Grande Porte"],
-                )
+        # ── CAIXA 2: KYC COMPLETO ──────────────────────────────────────
+        st.markdown('<div class="box-label">KYC</div>', unsafe_allow_html=True)
+        st.markdown('<div class="form-box">', unsafe_allow_html=True)
 
-            st.markdown('<div class="section-title">Atividade Econômica</div>', unsafe_allow_html=True)
-            col1, col2 = st.columns([1, 2])
-            with col1:
-                cnae = st.text_input("CNAE Primário", placeholder="0000-0/00")
-            with col2:
-                desc_cnae = st.text_input("Descrição CNAE", placeholder="Descrição da atividade")
-            desc_atividade = st.text_area(
-                "Descrição da Atividade da Empresa *",
-                height=100,
-                placeholder="Descreva detalhadamente a atividade exercida pela empresa...",
+        st.markdown('<div class="section-title" style="margin-top:4px">Identificação</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            razao_social = st.text_input("Razão Social *", placeholder="Ex: EMPRESA LTDA.")
+            nome_fantasia = st.text_input("Nome Fantasia", placeholder="(opcional)")
+        with col2:
+            data_fund = st.date_input(
+                "Data de Fundação",
+                value=datetime.date(2020, 1, 1),
+                min_value=datetime.date(1900, 1, 1),
+            )
+            nat_juridica = st.selectbox(
+                "Natureza Jurídica",
+                ["Sociedade Limitada (LTDA)", "SA Aberta", "SA Fechada", "EIRELI", "MEI", "Outra"],
+            )
+            porte = st.selectbox(
+                "Porte",
+                ["Micro", "Pequeno Porte", "Médio Porte", "Grande Porte"],
             )
 
-            st.markdown('<div class="section-title">Capacidade Financeira</div>', unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
-            with col1:
-                capital_social = st.number_input(
-                    "Capital Social (R$)", min_value=0.0, step=1000.0, format="%.2f"
-                )
-            with col2:
-                faturamento = st.number_input(
-                    "Faturamento Presumido (R$)", min_value=0.0, step=10000.0, format="%.2f"
-                )
+        st.markdown('<div class="section-title">Atividade Econômica</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            cnae = st.text_input("CNAE Primário", placeholder="0000-0/00")
+        with col2:
+            desc_cnae = st.text_input("Descrição CNAE", placeholder="Descrição da atividade")
+        desc_atividade = st.text_area(
+            "Descrição da Atividade da Empresa *",
+            height=100,
+            placeholder="Descreva detalhadamente a atividade exercida pela empresa...",
+        )
 
-            st.markdown('<div class="section-title">Localização & Fachada</div>', unsafe_allow_html=True)
-            endereco = st.text_input(
-                "Endereço Completo",
-                placeholder="Rua, número, complemento, bairro, cidade, estado, CEP",
+        st.markdown('<div class="section-title">Capacidade Financeira</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            capital_social = st.number_input(
+                "Capital Social (R$)", min_value=0.0, step=1000.0, format="%.2f"
             )
-            col1, col2 = st.columns(2)
-            with col1:
-                regiao_front = st.selectbox("Região Fronteiriça?", ["Não", "Sim"])
-                link_fachada = st.text_input("Link Fachada (Maps)", placeholder="https://...")
-            with col2:
-                desc_fachada = st.text_area("Descrição da Fachada", height=80)
-                data_foto = st.text_input("Data da Foto (MM/AAAA)", placeholder="Ex: Março/2023")
+        with col2:
+            faturamento = st.number_input(
+                "Faturamento Presumido (R$)", min_value=0.0, step=10000.0, format="%.2f"
+            )
 
-            st.markdown('<div class="section-title">Tipo de Cliente</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Localização & Fachada</div>', unsafe_allow_html=True)
+        endereco = st.text_input(
+            "Endereço Completo",
+            placeholder="Rua, número, complemento, bairro, cidade, estado, CEP",
+        )
+        col1, col2 = st.columns(2)
+        with col1:
+            regiao_front = st.selectbox("Região Fronteiriça?", ["Não", "Sim"])
+            link_fachada = st.text_input("Link Fachada (Maps)", placeholder="https://...")
+        with col2:
+            desc_fachada = st.text_area("Descrição da Fachada", height=80)
+            data_foto = st.text_input("Data da Foto (MM/AAAA)", placeholder="Ex: Março/2023")
+
+        st.markdown('<div class="section-title">Tipo de Cliente</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            tipo_cliente = st.selectbox(
+                "Tipo de Cliente *",
+                [
+                    "Fintech de Pagamentos",
+                    "Fintech de Crédito",
+                    "Banco / Instituição Financeira",
+                    "Câmbio / Remessas",
+                    "Comércio Varejista",
+                    "Comércio Atacadista",
+                    "Marketplace",
+                    "Prestação de Serviços",
+                    "Indústria",
+                    "Holding / Investimentos",
+                    "ONG / Associação",
+                    "Outro",
+                ],
+            )
+        with col2:
+            subtipo_cliente = st.text_input("Subtipo / Segmento", placeholder="Ex: Pagamentos cross-border, Crédito consignado...")
+
+        st.markdown('<div class="section-title">Website & Redes Sociais</div>', unsafe_allow_html=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            website = st.text_input("Website", placeholder="https://www.empresa.com.br")
+            linkedin = st.text_input("LinkedIn", placeholder="https://linkedin.com/company/...")
+        with col2:
+            instagram = st.text_input("Instagram", placeholder="https://instagram.com/...")
+            outras_redes = st.text_input("Outras redes sociais", placeholder="Facebook, Twitter/X, YouTube...")
+        desc_website_redes = st.text_area(
+            "Descrição do Website e Redes Sociais",
+            height=100,
+            placeholder=(
+                "Descreva o conteúdo do website e redes sociais: coerência com a atividade declarada, "
+                "qualidade das informações, presença de produtos/serviços, data de criação, "
+                "número de seguidores, regularidade de publicações, etc."
+            ),
+        )
+
+        st.markdown('<div class="section-title">Mídia Negativa</div>', unsafe_allow_html=True)
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            midia_neg_emp = st.selectbox("Mídia Negativa (empresa)?", ["Não", "Sim", "N/A"])
+        with col2:
+            tipo_kyc = st.selectbox(
+                "Tipo de KYC", ["Elaboração do KYC", "Reutilização de KYC", "Atualização"]
+            )
+        with col3:
+            link_kyc = st.text_input("Link KYC anterior", placeholder="https://... (se reutilização)")
+
+        if midia_neg_emp == "Sim":
             col1, col2 = st.columns(2)
             with col1:
-                tipo_cliente = st.selectbox(
-                    "Tipo de Cliente *",
+                midia_fonte = st.text_input(
+                    "Fonte(s) da mídia negativa",
+                    placeholder="Ex: G1, UOL, Reclame Aqui, Diário Oficial...",
+                )
+                midia_data_pub = st.text_input(
+                    "Data de publicação", placeholder="Ex: Janeiro/2024"
+                )
+            with col2:
+                midia_tipo = st.multiselect(
+                    "Tipo de ocorrência",
                     [
-                        "Fintech de Pagamentos",
-                        "Fintech de Crédito",
-                        "Banco / Instituição Financeira",
-                        "Câmbio / Remessas",
-                        "Comércio Varejista",
-                        "Comércio Atacadista",
-                        "Marketplace",
-                        "Prestação de Serviços",
-                        "Indústria",
-                        "Holding / Investimentos",
-                        "ONG / Associação",
+                        "Fraude / Estelionato",
+                        "Lavagem de Dinheiro",
+                        "Evasão Fiscal",
+                        "Reclamações de consumidores",
+                        "Processo judicial",
+                        "Sanção regulatória",
+                        "Corrupção / Improbidade",
                         "Outro",
                     ],
                 )
-            with col2:
-                subtipo_cliente = st.text_input("Subtipo / Segmento", placeholder="Ex: Pagamentos cross-border, Crédito consignado...")
-
-            st.markdown('<div class="section-title">Website & Redes Sociais</div>', unsafe_allow_html=True)
-            col1, col2 = st.columns(2)
-            with col1:
-                website = st.text_input("Website", placeholder="https://www.empresa.com.br")
-                linkedin = st.text_input("LinkedIn", placeholder="https://linkedin.com/company/...")
-            with col2:
-                instagram = st.text_input("Instagram", placeholder="https://instagram.com/...")
-                outras_redes = st.text_input("Outras redes sociais", placeholder="Facebook, Twitter/X, YouTube...")
-            desc_website_redes = st.text_area(
-                "Descrição do Website e Redes Sociais",
+            midia_desc = st.text_area(
+                "Descrição da mídia negativa *",
                 height=100,
-                placeholder=(
-                    "Descreva o conteúdo do website e redes sociais: coerência com a atividade declarada, "
-                    "qualidade das informações, presença de produtos/serviços, data de criação, "
-                    "número de seguidores, regularidade de publicações, etc."
-                ),
+                placeholder="Descreva detalhadamente as ocorrências encontradas, links de referência e impacto na análise de risco...",
             )
+        else:
+            midia_fonte = ""
+            midia_data_pub = ""
+            midia_tipo = []
+            midia_desc = ""
 
-            st.markdown('<div class="section-title">Mídia Negativa</div>', unsafe_allow_html=True)
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                midia_neg_emp = st.selectbox("Mídia Negativa (empresa)?", ["Não", "Sim", "N/A"])
-            with col2:
-                tipo_kyc = st.selectbox(
-                    "Tipo de KYC", ["Elaboração do KYC", "Reutilização de KYC", "Atualização"]
-                )
-            with col3:
-                link_kyc = st.text_input("Link KYC anterior", placeholder="https://... (se reutilização)")
+        obs_kyc = st.text_area("Observações adicionais (KYC)", height=80)
 
-            if midia_neg_emp == "Sim":
-                col1, col2 = st.columns(2)
-                with col1:
-                    midia_fonte = st.text_input(
-                        "Fonte(s) da mídia negativa",
-                        placeholder="Ex: G1, UOL, Reclame Aqui, Diário Oficial...",
-                    )
-                    midia_data_pub = st.text_input(
-                        "Data de publicação", placeholder="Ex: Janeiro/2024"
-                    )
-                with col2:
-                    midia_tipo = st.multiselect(
-                        "Tipo de ocorrência",
-                        [
-                            "Fraude / Estelionato",
-                            "Lavagem de Dinheiro",
-                            "Evasão Fiscal",
-                            "Reclamações de consumidores",
-                            "Processo judicial",
-                            "Sanção regulatória",
-                            "Corrupção / Improbidade",
-                            "Outro",
-                        ],
-                    )
-                midia_desc = st.text_area(
-                    "Descrição da mídia negativa *",
-                    height=100,
-                    placeholder="Descreva detalhadamente as ocorrências encontradas, links de referência e impacto na análise de risco...",
-                )
-            else:
-                midia_fonte = ""
-                midia_data_pub = ""
-                midia_tipo = []
-                midia_desc = ""
-
-            obs_kyc = st.text_area("Observações adicionais (KYC)", height=80)
+        st.markdown('</div>', unsafe_allow_html=True)
 
     # ── TAB 2: SÓCIOS ─────────────────────────────────────────────────────
     with tab2:
