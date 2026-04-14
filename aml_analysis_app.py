@@ -282,37 +282,6 @@ if "socios" not in st.session_state:
 def novo_caso_id():
     return str(uuid.uuid4())[:8].upper()
 
-def calcular_risco(kyc, socios, mlro_dec):
-    score = 0
-    flags = []
-
-    # PEP check
-    for s in socios:
-        if s.get("pep") == "Sim":
-            score += 30
-            flags.append("Sócio PEP identificado")
-        if s.get("midia_negativa") == "Sim":
-            score += 25
-            flags.append("Mídia negativa em sócio")
-
-    if kyc.get("regiao_fronteiricia") == "Sim":
-        score += 20
-        flags.append("Região fronteiriça")
-    if kyc.get("midia_negativa") == "Sim":
-        score += 25
-        flags.append("Mídia negativa na empresa")
-
-    cap = kyc.get("faturamento", 0)
-    if cap > 10_000_000:
-        score += 10
-        flags.append("Alto faturamento declarado")
-
-    if mlro_dec and mlro_dec not in ["N/A", "Aprovado", ""]:
-        score += 15
-
-    nivel = "ALTO" if score >= 50 else "MÉDIO" if score >= 25 else "BAIXO"
-    return score, nivel, flags
-
 # ── SIDEBAR ───────────────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### 🔍 MYCROFT NUPAY")
@@ -366,161 +335,53 @@ if "Novo" in pagina:
         # ── CAIXA 1: CNPJ ──────────────────────────────────────────────
         st.markdown('<div class="box-label">CNPJ</div>', unsafe_allow_html=True)
         st.markdown('<div class="form-box">', unsafe_allow_html=True)
-        cnpj = st.text_input("CNPJ *", placeholder="00.000.000/0000-00", label_visibility="collapsed")
+        cnpj = st.text_input("CNPJ", placeholder="00.000.000/0000-00", label_visibility="collapsed")
         st.markdown('</div>', unsafe_allow_html=True)
 
         st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
 
-        # ── CAIXA 2: KYC COMPLETO ──────────────────────────────────────
+        # ── CAIXA 2: KYC ───────────────────────────────────────────────
         st.markdown('<div class="box-label">KYC</div>', unsafe_allow_html=True)
         st.markdown('<div class="form-box">', unsafe_allow_html=True)
-
-        st.markdown('<div class="section-title" style="margin-top:4px">Identificação</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            razao_social = st.text_input("Razão Social *", placeholder="Ex: EMPRESA LTDA.")
-            nome_fantasia = st.text_input("Nome Fantasia", placeholder="(opcional)")
-        with col2:
-            data_fund = st.date_input(
-                "Data de Fundação",
-                value=datetime.date(2020, 1, 1),
-                min_value=datetime.date(1900, 1, 1),
-            )
-            nat_juridica = st.selectbox(
-                "Natureza Jurídica",
-                ["Sociedade Limitada (LTDA)", "SA Aberta", "SA Fechada", "EIRELI", "MEI", "Outra"],
-            )
-            porte = st.selectbox(
-                "Porte",
-                ["Micro", "Pequeno Porte", "Médio Porte", "Grande Porte"],
-            )
-
-        st.markdown('<div class="section-title">Atividade Econômica</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns([1, 2])
-        with col1:
-            cnae = st.text_input("CNAE Primário", placeholder="0000-0/00")
-        with col2:
-            desc_cnae = st.text_input("Descrição CNAE", placeholder="Descrição da atividade")
-        desc_atividade = st.text_area(
-            "Descrição da Atividade da Empresa *",
-            height=100,
-            placeholder="Descreva detalhadamente a atividade exercida pela empresa...",
+        kyc_texto = st.text_area(
+            "KYC",
+            height=400,
+            placeholder="Cole aqui todas as informações de KYC do cliente...",
+            label_visibility="collapsed",
         )
-
-        st.markdown('<div class="section-title">Capacidade Financeira</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            capital_social = st.number_input(
-                "Capital Social (R$)", min_value=0.0, step=1000.0, format="%.2f"
-            )
-        with col2:
-            faturamento = st.number_input(
-                "Faturamento Presumido (R$)", min_value=0.0, step=10000.0, format="%.2f"
-            )
-
-        st.markdown('<div class="section-title">Localização & Fachada</div>', unsafe_allow_html=True)
-        endereco = st.text_input(
-            "Endereço Completo",
-            placeholder="Rua, número, complemento, bairro, cidade, estado, CEP",
-        )
-        col1, col2 = st.columns(2)
-        with col1:
-            regiao_front = st.selectbox("Região Fronteiriça?", ["Não", "Sim"])
-            link_fachada = st.text_input("Link Fachada (Maps)", placeholder="https://...")
-        with col2:
-            desc_fachada = st.text_area("Descrição da Fachada", height=80)
-            data_foto = st.text_input("Data da Foto (MM/AAAA)", placeholder="Ex: Março/2023")
-
-        st.markdown('<div class="section-title">Tipo de Cliente</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            tipo_cliente = st.selectbox(
-                "Tipo de Cliente *",
-                [
-                    "Fintech de Pagamentos",
-                    "Fintech de Crédito",
-                    "Banco / Instituição Financeira",
-                    "Câmbio / Remessas",
-                    "Comércio Varejista",
-                    "Comércio Atacadista",
-                    "Marketplace",
-                    "Prestação de Serviços",
-                    "Indústria",
-                    "Holding / Investimentos",
-                    "ONG / Associação",
-                    "Outro",
-                ],
-            )
-        with col2:
-            subtipo_cliente = st.text_input("Subtipo / Segmento", placeholder="Ex: Pagamentos cross-border, Crédito consignado...")
-
-        st.markdown('<div class="section-title">Website & Redes Sociais</div>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            website = st.text_input("Website", placeholder="https://www.empresa.com.br")
-            linkedin = st.text_input("LinkedIn", placeholder="https://linkedin.com/company/...")
-        with col2:
-            instagram = st.text_input("Instagram", placeholder="https://instagram.com/...")
-            outras_redes = st.text_input("Outras redes sociais", placeholder="Facebook, Twitter/X, YouTube...")
-        desc_website_redes = st.text_area(
-            "Descrição do Website e Redes Sociais",
-            height=100,
-            placeholder=(
-                "Descreva o conteúdo do website e redes sociais: coerência com a atividade declarada, "
-                "qualidade das informações, presença de produtos/serviços, data de criação, "
-                "número de seguidores, regularidade de publicações, etc."
-            ),
-        )
-
-        st.markdown('<div class="section-title">Mídia Negativa</div>', unsafe_allow_html=True)
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            midia_neg_emp = st.selectbox("Mídia Negativa (empresa)?", ["Não", "Sim", "N/A"])
-        with col2:
-            tipo_kyc = st.selectbox(
-                "Tipo de KYC", ["Elaboração do KYC", "Reutilização de KYC", "Atualização"]
-            )
-        with col3:
-            link_kyc = st.text_input("Link KYC anterior", placeholder="https://... (se reutilização)")
-
-        if midia_neg_emp == "Sim":
-            col1, col2 = st.columns(2)
-            with col1:
-                midia_fonte = st.text_input(
-                    "Fonte(s) da mídia negativa",
-                    placeholder="Ex: G1, UOL, Reclame Aqui, Diário Oficial...",
-                )
-                midia_data_pub = st.text_input(
-                    "Data de publicação", placeholder="Ex: Janeiro/2024"
-                )
-            with col2:
-                midia_tipo = st.multiselect(
-                    "Tipo de ocorrência",
-                    [
-                        "Fraude / Estelionato",
-                        "Lavagem de Dinheiro",
-                        "Evasão Fiscal",
-                        "Reclamações de consumidores",
-                        "Processo judicial",
-                        "Sanção regulatória",
-                        "Corrupção / Improbidade",
-                        "Outro",
-                    ],
-                )
-            midia_desc = st.text_area(
-                "Descrição da mídia negativa *",
-                height=100,
-                placeholder="Descreva detalhadamente as ocorrências encontradas, links de referência e impacto na análise de risco...",
-            )
-        else:
-            midia_fonte = ""
-            midia_data_pub = ""
-            midia_tipo = []
-            midia_desc = ""
-
-        obs_kyc = st.text_area("Observações adicionais (KYC)", height=80)
-
         st.markdown('</div>', unsafe_allow_html=True)
+
+        # Variáveis mantidas para compatibilidade com o restante do código
+        razao_social = ""
+        nome_fantasia = ""
+        data_fund = datetime.date(2020, 1, 1)
+        nat_juridica = ""
+        porte = ""
+        cnae = ""
+        desc_cnae = ""
+        desc_atividade = kyc_texto
+        capital_social = 0.0
+        faturamento = 0.0
+        endereco = ""
+        regiao_front = "Não"
+        link_fachada = ""
+        desc_fachada = ""
+        data_foto = ""
+        tipo_cliente = ""
+        subtipo_cliente = ""
+        website = ""
+        linkedin = ""
+        instagram = ""
+        outras_redes = ""
+        desc_website_redes = ""
+        midia_neg_emp = "N/A"
+        midia_fonte = ""
+        midia_data_pub = ""
+        midia_tipo = []
+        midia_desc = ""
+        tipo_kyc = ""
+        link_kyc = ""
+        obs_kyc = ""
 
     # ── TAB 2: SÓCIOS ─────────────────────────────────────────────────────
     with tab2:
@@ -692,8 +553,8 @@ if "Novo" in pagina:
         limpar = st.button("🗑️  Limpar Formulário", use_container_width=True)
 
     if salvar:
-        if not cnpj or not razao_social or not desc_atividade:
-            st.error("⚠️  Preencha os campos obrigatórios: CNPJ, Razão Social e Descrição da Atividade.")
+        if not cnpj:
+            st.error("⚠️  Preencha o CNPJ.")
         elif decisao_final == "Selecione...":
             st.error("⚠️  Selecione a Decisão Final na aba Parecer do Analista.")
         elif not analista_nome:
@@ -701,41 +562,8 @@ if "Novo" in pagina:
         else:
             kyc_data = {
                 "cnpj": cnpj,
-                "razao_social": razao_social,
-                "nome_fantasia": nome_fantasia,
-                "data_fundacao": str(data_fund),
-                "nat_juridica": nat_juridica,
-                "porte": porte,
-                "cnae": cnae,
-                "desc_cnae": desc_cnae,
-                "desc_atividade": desc_atividade,
-                "tipo_cliente": tipo_cliente,
-                "subtipo_cliente": subtipo_cliente,
-                "capital_social": capital_social,
-                "faturamento": faturamento,
-                "endereco": endereco,
-                "regiao_fronteiricia": regiao_front,
-                "link_fachada": link_fachada,
-                "desc_fachada": desc_fachada,
-                "website": website,
-                "linkedin": linkedin,
-                "instagram": instagram,
-                "outras_redes": outras_redes,
-                "desc_website_redes": desc_website_redes,
-                "midia_negativa": midia_neg_emp,
-                "midia_fonte": midia_fonte,
-                "midia_data_pub": midia_data_pub,
-                "midia_tipo": midia_tipo,
-                "midia_desc": midia_desc,
-                "tipo_kyc": tipo_kyc,
-                "obs": obs_kyc,
+                "kyc_texto": kyc_texto,
             }
-
-            score, nivel, flags = calcular_risco(
-                kyc_data,
-                st.session_state.socios,
-                mlro_dec,
-            )
 
             caso_id = novo_caso_id()
             st.session_state.casos[caso_id] = {
@@ -757,16 +585,9 @@ if "Novo" in pagina:
                     "texto": parecer_texto,
                     "recomendacoes": recomendacoes,
                 },
-                "risco_score": score,
-                "risco_nivel": nivel,
-                "risco_flags": flags,
             }
             st.session_state.current_caso = caso_id
-            st.success(f"✅  Caso **{caso_id}** salvo com sucesso! Risco calculado: **{nivel}** (score {score})")
-
-            # Show risk summary
-            if flags:
-                st.warning("🚩 Fatores de risco identificados: " + " · ".join(flags))
+            st.success(f"✅  Caso **{caso_id}** salvo com sucesso!")
 
     if limpar:
         st.session_state.socios = [{}]
@@ -1019,35 +840,22 @@ elif "Casos" in pagina:
         st.info("Nenhum caso salvo ainda. Use 'Novo Caso' para iniciar uma análise.")
     else:
         for cid, caso in st.session_state.casos.items():
-            nivel = caso.get("risco_nivel", "—")
-            score = caso.get("risco_score", 0)
-            cor_badge = {"ALTO": "badge-red", "MÉDIO": "badge-yellow", "BAIXO": "badge-green"}.get(nivel, "badge")
             cnpj_ = caso["kyc"]["cnpj"]
-            razao_ = caso["kyc"]["razao_social"]
             decisao_ = caso["parecer"]["decisao"]
             analista_ = caso["parecer"]["analista"]
+            nivel_risco_ = caso["parecer"]["nivel_risco"]
             data_ = caso["criado_em"][:16]
 
-            with st.expander(f"[{cid}]  {razao_}  —  {cnpj_}", expanded=False):
+            with st.expander(f"[{cid}]  {cnpj_}", expanded=False):
                 col1, col2, col3 = st.columns(3)
                 with col1:
                     st.markdown(f"**CNPJ:** `{cnpj_}`")
-                    st.markdown(f"**Razão Social:** {razao_}")
-                    st.markdown(f"**Porte:** {caso['kyc']['porte']}")
+                    st.markdown(f"**Data:** {data_}")
                 with col2:
                     st.markdown(f"**Decisão:** {decisao_}")
                     st.markdown(f"**Analista:** {analista_}")
-                    st.markdown(f"**Data:** {data_}")
                 with col3:
-                    st.markdown(
-                        f"**Nível de Risco:** "
-                        f"<span class='risk-{'high' if nivel=='ALTO' else 'medium' if nivel=='MÉDIO' else 'low'}'>{nivel}</span> "
-                        f"(score: {score})",
-                        unsafe_allow_html=True,
-                    )
-                    if caso["risco_flags"]:
-                        for f in caso["risco_flags"]:
-                            st.markdown(f"🚩 {f}")
+                    st.markdown(f"**Nível de Risco:** {nivel_risco_}")
 
                 # Full JSON export
                 if st.button("📄 Ver JSON completo", key=f"json_{cid}"):
@@ -1075,11 +883,9 @@ elif "Dashboard" in pagina:
         st.info("Nenhum caso registrado ainda.")
     else:
         total = len(casos)
-        altos = sum(1 for c in casos.values() if c["risco_nivel"] == "ALTO")
-        medios = sum(1 for c in casos.values() if c["risco_nivel"] == "MÉDIO")
-        baixos = sum(1 for c in casos.values() if c["risco_nivel"] == "BAIXO")
         aprovados = sum(1 for c in casos.values() if "Aprovado" in c["parecer"]["decisao"])
         reprovados = sum(1 for c in casos.values() if "Reprovado" in c["parecer"]["decisao"])
+        mlro = sum(1 for c in casos.values() if "MLRO" in c["parecer"]["decisao"])
 
         st.markdown(f"""
         <div class="metric-row">
@@ -1088,24 +894,16 @@ elif "Dashboard" in pagina:
                 <div class="metric-label">Total de Casos</div>
             </div>
             <div class="metric-box">
-                <div class="metric-val risk-high">{altos}</div>
-                <div class="metric-label">Risco Alto</div>
-            </div>
-            <div class="metric-box">
-                <div class="metric-val risk-medium">{medios}</div>
-                <div class="metric-label">Risco Médio</div>
-            </div>
-            <div class="metric-box">
-                <div class="metric-val risk-low">{baixos}</div>
-                <div class="metric-label">Risco Baixo</div>
-            </div>
-            <div class="metric-box">
                 <div class="metric-val" style="color:#4ade80">{aprovados}</div>
                 <div class="metric-label">Aprovados</div>
             </div>
             <div class="metric-box">
                 <div class="metric-val" style="color:#f87171">{reprovados}</div>
                 <div class="metric-label">Reprovados</div>
+            </div>
+            <div class="metric-box">
+                <div class="metric-val" style="color:#fbbf24">{mlro}</div>
+                <div class="metric-label">Encaminhados MLRO</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -1120,11 +918,8 @@ elif "Dashboard" in pagina:
             rows.append({
                 "ID": cid,
                 "CNPJ": c["kyc"]["cnpj"],
-                "Razão Social": c["kyc"]["razao_social"],
-                "Porte": c["kyc"]["porte"],
-                "Risco": c["risco_nivel"],
-                "Score": c["risco_score"],
                 "Decisão": c["parecer"]["decisao"],
+                "Nível de Risco": c["parecer"]["nivel_risco"],
                 "Analista": c["parecer"]["analista"],
                 "Data": c["criado_em"][:10],
             })
