@@ -332,24 +332,18 @@ if "Novo" in pagina:
     # ── TAB 1: KYC ────────────────────────────────────────────────────────
     with tab1:
 
-        # ── CAIXA 1: CNPJ ──────────────────────────────────────────────
-        st.markdown('<div class="box-label">CNPJ</div>', unsafe_allow_html=True)
-        st.markdown('<div class="form-box">', unsafe_allow_html=True)
-        cnpj = st.text_input("CNPJ", placeholder="00.000.000/0000-00", label_visibility="collapsed")
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("**CNPJ**")
+        with st.container(border=True):
+            cnpj = st.text_input("CNPJ", placeholder="00.000.000/0000-00", label_visibility="collapsed")
 
-        st.markdown("<div style='height:16px'></div>", unsafe_allow_html=True)
-
-        # ── CAIXA 2: KYC ───────────────────────────────────────────────
-        st.markdown('<div class="box-label">KYC</div>', unsafe_allow_html=True)
-        st.markdown('<div class="form-box">', unsafe_allow_html=True)
-        kyc_texto = st.text_area(
-            "KYC",
-            height=400,
-            placeholder="Cole aqui todas as informações de KYC do cliente...",
-            label_visibility="collapsed",
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+        st.markdown("**KYC**")
+        with st.container(border=True):
+            kyc_texto = st.text_area(
+                "KYC",
+                height=400,
+                placeholder="Cole aqui todas as informações de KYC do cliente...",
+                label_visibility="collapsed",
+            )
 
         # Variáveis mantidas para compatibilidade com o restante do código
         razao_social = ""
