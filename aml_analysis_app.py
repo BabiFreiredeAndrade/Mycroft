@@ -461,7 +461,7 @@ if "Novo" in pagina:
             with col1:
                 mlro_dec = st.selectbox(
                     "Decisão *",
-                    ["Pendente", "Aprovado", "Aprovado com ressalvas", "Reprovado", "Em análise"],
+                    ["Selecione...", "Clear", "Reportar", "Reportar e Cancelar", "Cancelar"],
                 )
                 mlro_resp = st.text_input("Responsável MLRO", placeholder="Nome do analista MLRO")
             with col2:
@@ -501,12 +501,10 @@ if "Novo" in pagina:
                 "Decisão Final *",
                 [
                     "Selecione...",
-                    "✅ Aprovado",
-                    "✅ Aprovado com monitoramento",
-                    "⚠️ Aprovado com ressalvas",
-                    "🔴 Reprovado",
-                    "🔄 Encaminhar para MLRO",
-                    "📋 Aguardando documentação",
+                    "Clear",
+                    "Reportar",
+                    "Reportar e Cancelar",
+                    "Cancelar",
                 ],
             )
             nivel_risco_manual = st.selectbox(
@@ -883,8 +881,9 @@ elif "Dashboard" in pagina:
         st.info("Nenhum caso registrado ainda.")
     else:
         total = len(casos)
-        aprovados = sum(1 for c in casos.values() if "Aprovado" in c["parecer"]["decisao"])
-        reprovados = sum(1 for c in casos.values() if "Reprovado" in c["parecer"]["decisao"])
+        clear = sum(1 for c in casos.values() if c["parecer"]["decisao"] == "Clear")
+        reportar = sum(1 for c in casos.values() if "Reportar" in c["parecer"]["decisao"])
+        cancelar = sum(1 for c in casos.values() if "Cancelar" in c["parecer"]["decisao"])
         mlro = sum(1 for c in casos.values() if "MLRO" in c["parecer"]["decisao"])
 
         st.markdown(f"""
@@ -894,16 +893,16 @@ elif "Dashboard" in pagina:
                 <div class="metric-label">Total de Casos</div>
             </div>
             <div class="metric-box">
-                <div class="metric-val" style="color:#4ade80">{aprovados}</div>
-                <div class="metric-label">Aprovados</div>
+                <div class="metric-val" style="color:#4ade80">{clear}</div>
+                <div class="metric-label">Clear</div>
             </div>
             <div class="metric-box">
-                <div class="metric-val" style="color:#f87171">{reprovados}</div>
-                <div class="metric-label">Reprovados</div>
+                <div class="metric-val" style="color:#fbbf24">{reportar}</div>
+                <div class="metric-label">Reportar</div>
             </div>
             <div class="metric-box">
-                <div class="metric-val" style="color:#fbbf24">{mlro}</div>
-                <div class="metric-label">Encaminhados MLRO</div>
+                <div class="metric-val" style="color:#f87171">{cancelar}</div>
+                <div class="metric-label">Cancelar</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
